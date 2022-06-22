@@ -289,6 +289,6 @@ select_t2_as_subquery:
  |  select { print(T.cur_col.name) } from t2 where tt_predicates
 
 select_apply_subquery:
-    select (select t2.{ c1 = T.rand_col(); print(c1.name) } from t2 where tt_predicate2 order by t2.{ print(c1.name) } limit 1) x from t1 { print("/* force-unordered */") }
- |  select (select t2.{ c1 = T.rand_col(); print(c1.name) } from t2 where t2.{ print(c1.name) } rand_cmp t1.{ print(c1.name) } and t2.c_int = rand_c_int order by t2.{ print(c1.name) } limit 1) x from t1 { print("/* force-unordered */") }
- |  select (select t2.{ c1 = T.rand_col(); print(c1.name) } from t2 where t2.{ print(c1.name) } rand_cmp t1.{ print(c1.name) } and t2.c_int in (rand_c_int, rand_c_int, rand_c_int) order by t2.{ print(c1.name) } limit 1) x from t1 { print("/* force-unordered */") }
+    select (select t2.{ c1 = T.rand_col(); print(c1.name) } from t2 where tt_predicate2 order by t2.{ print(c1.name) } limit 1) x from t1 order by x { print("/* force-unordered */") }
+ |  select (select t2.{ c1 = T.rand_col(); print(c1.name) } from t2 where t2.{ print(c1.name) } rand_cmp t1.{ print(c1.name) } and t2.c_int = rand_c_int order by t2.{ print(c1.name) } limit 1) x from t1 order by x { print("/* force-unordered */") }
+ |  select (select t2.{ c1 = T.rand_col(); print(c1.name) } from t2 where t2.{ print(c1.name) } rand_cmp t1.{ print(c1.name) } and t2.c_int in (rand_c_int, rand_c_int, rand_c_int) order by t2.{ print(c1.name) } limit 1) x from t1 order by x { print("/* force-unordered */") }
