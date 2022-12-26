@@ -1,13 +1,17 @@
 package main
 
 import (
+	"context"
+	"database/sql"
 	"fmt"
 	"io/ioutil"
+	"log"
 	"net/http"
 	"net/url"
 	"strings"
 	"time"
 
+	"github.com/go-sql-driver/mysql"
 	"github.com/spf13/cobra"
 )
 
@@ -47,7 +51,9 @@ func playCmd() *cobra.Command {
 			}
 			opts.Grammar = string(yy)
 			opts.DSN1 = processDSN(opts.DSN1)
+			opts.DSN1 = ignoreInvalidVar(opts.DSN1)
 			opts.DSN2 = processDSN(opts.DSN2)
+			opts.DSN2 = ignoreInvalidVar(opts.DSN2)
 			return play(opts)
 		},
 	}
@@ -83,4 +89,27 @@ func processDSN(dsn string) string {
 		auth = "root:"
 	}
 	return fmt.Sprintf("%s@tcp(%s)/?%s", auth, a.Host, a.RawQuery)
+}
+
+func ignoreInvalidVar(dsn string) string {
+	c, err := mysql.ParseDSN(dsn)
+	if err != nil {
+		return dsn
+	}
+	tmpMap := c.Params
+	c.Params = nil
+	db, err := sql.Open("mysql", c.FormatDSN())
+	defer db.Close()
+
+	c.Params = tmpMap
+	for key := range c.Params {
+		_, err := db.ExecContext(context.Background(), "select @@"+key)
+		if err != nil && strings.Contains(err.Error(), "Unknown system variable") {
+			delete(c.Params, key)
+		}
+	}
+	newDsn := c.FormatDSN()
+	log.Printf("dsn %s\n", dsn)
+	log.Printf("newDsn %s\n", newDsn)
+	return newDsn
 }
